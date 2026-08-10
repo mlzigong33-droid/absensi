@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen & Presensi Remaja Masjid Desa Mandala</title>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-light: #ccfbf1;
+            --primary-dark: #115e59;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --hadir: #10b981;
+            --izin: #3b82f6;
+            --sakit: #f59e0b;
+            --alpa: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigasi */
+        aside {
+            width: 260px;
+            background: #064e3b;
+            color: white;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .brand i {
+            font-size: 1.8rem;
+            color: #34d399;
+        }
+
+        .menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #a7f3d0;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: #047857;
+            color: white;
+        }
+
+        /* Konten Utama Dashboard */
+        main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-card .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-panel {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* Form Controls */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], input[type="date"], input[type="number"], select {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-success:hover { background: #15803d; }
+        .btn-danger { background: #fee2e2; color: var(--alpa); }
+        .btn-danger:hover { background: #fca5a5; }
+        .btn-warning { background: #fef3c7; color: var(--sakit); }
+
+        /* Tabel Presensi & Anggota */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Selection Status */
+        .status-btn-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .status-btn-group label {
+            cursor: pointer;
+        }
+
+        .status-btn-group input {
+            display: none;
+        }
+
+        .status-btn-group span {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: inline-block;
+        }
+
+        .status-btn-group input[value="Hadir"]:checked + span { background: #d1fae5; color: var(--hadir); border-color: var(--hadir); }
+        .status-btn-group input[value="Izin"]:checked + span { background: #dbeafe; color: var(--izin); border-color: var(--izin); }
+        .status-btn-group input[value="Sakit"]:checked + span { background: #fef3c7; color: var(--sakit); border-color: var(--sakit); }
+        .status-btn-group input[value="Alpa"]:checked + span { background: #fee2e2; color: var(--alpa); border-color: var(--alpa); }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            aside { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigasi Utama -->
+    <aside>
+        <div class="brand">
+            <i class="ph-bold ph-mosque"></i>
+            <span>Remaja Masjid Mandala</span>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="switchMenu('presensi', this)">
+                <i class="ph-bold ph-clipboard-text"></i> Presensi Kegiatan
+            </li>
+            <li class="menu-item" onclick="switchMenu('rekap', this)">
+                <i class="ph-bold ph-chart-bar"></i> Rekap & Laporan
+            </li>
+            <li class="menu-item" onclick="switchMenu('anggota', this)">
+                <i class="ph-bold ph-users-three"></i> Data Anggota
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Konten Dashboard -->
+    <main>
+
+        <!-- SEC 1: PRESENSI -->
+        <section id="sec-presensi" class="page-section active">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Presensi Kegiatan</h1>
+                    <p>Pencatatan kehadiran dan kas harian anggota</p>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="form-row">
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="font-size: 0.8rem; font-weight:600; color:var(--text-muted);">Tanggal</label>
+                        <input type="date" id="attendanceDate" style="width: 100%;">
+                    </div>
+                    <div style="flex: 2; min-width: 220px;">
+                        <label style="font-size: 0.8rem; font-weight:600; color:var(--text-muted);">Nama Kegiatan / Acara</label>
+                        <input type="text" id="eventName" value="Kajian Rutin Mingguan" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Anggota</th>
+                                <th>Status Kehadiran</th>
+                                <th>Kas / Infak (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-primary" onclick="saveAttendance()">
+                        <i class="ph-bold ph-floppy-disk"></i> Simpan Data Presensi
+                    </button>
+                    <button class="btn btn-success" onclick="sendToWhatsApp()">
+                        <i class="ph-bold ph-whatsapp-logo"></i> Kirim Rekap ke WA Pengurus
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEC 2: REKAP & REPORTING -->
+        <section id="sec-rekap" class="page-section">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Rekapitulasi Laporan</h1>
+                    <p>Ringkasan kehadiran & dana kas terintegrasi</p>
+                </div>
+                <button class="btn btn-primary" onclick="exportToCSV()">
+                    <i class="ph-bold ph-download-simple"></i> Unduh File Excel (CSV)
+                </button>
+            </div>
+
+            <div class="card-grid">
+                <div class="stat-card">
+                    <div class="icon-box" style="background:#d1fae5; color:var(--hadir);"><i class="ph-bold ph-user-check"></i></div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight:bold;" id="statHadir">0</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Total Hadir</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box" style="background:#dbeafe; color:var(--izin);"><i class="ph-bold ph-envelope-open"></i></div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight:bold;" id="statIzin">0</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Total Izin</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box" style="background:#fef3c7; color:var(--sakit);"><i class="ph-bold ph-first-aid"></i></div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight:bold;" id="statSakit">0</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Total Sakit</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box" style="background:#fee2e2; color:var(--alpa);"><i class="ph-bold ph-user-x"></i></div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight:bold;" id="statAlpa">0</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">Total Alpa</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="panel-header">
+                    <h3>Total Kas Terkumpul: <span id="totalKasBox" style="color:var(--primary);">Rp 0</span></h3>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-muted);">Data dikalkulasi dari tanggal kegiatan yang dipilih di tab Presensi.</p>
+            </div>
+        </section>
+
+        <!-- SEC 3: DATA ANGGOTA (BISA GONTA-GANTI NAMA) -->
+        <section id="sec-anggota" class="page-section">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Kelola Anggota Remaja Masjid</h1>
+                    <p>Tambah, edit, dan hapus nama anggota</p>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div class="form-row">
+                    <input type="text" id="newMemberName" placeholder="Ketik nama anggota baru..." style="flex:1;">
+                    <input type="text" id="newMemberPhone" placeholder="No. HP / WA (Opsional)" style="flex:1;">
+                    <button class="btn btn-primary" onclick="addMember()">
+                        <i class="ph-bold ph-plus"></i> Tambah Anggota
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Anggota</th>
+                            <th>No. WhatsApp</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Target Nomor WA Pengurus
+        const TARGET_WA = "6283110017681";
+
+        // Initial State Data
+        let members = JSON.parse(localStorage.getItem('rmm_dash_members')) || [
+            { name: "Ahmad Ridwan", phone: "08123456789" },
+            { name: "Siti Nurhaliza", phone: "08987654321" },
+            { name: "Budi Santoso", phone: "08567890123" }
+        ];
+
+        let attendanceRecords = JSON.parse(localStorage.getItem('rmm_dash_attendance')) || {};
+
+        document.getElementById('attendanceDate').valueAsDate = new Date();
+
+        function saveData() {
+            localStorage.setItem('rmm_dash_members', JSON.stringify(members));
+            localStorage.setItem('rmm_dash_attendance', JSON.stringify(attendanceRecords));
+            renderAll();
+        }
+
+        function switchMenu(sectionName, el) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(menu => menu.classList.remove('active'));
+
+            document.getElementById(`sec-${sectionName}`).classList.add('active');
+            el.classList.add('active');
+        }
+
+        function renderAll() {
+            renderMembersTable();
+            renderAttendanceTable();
+            calculateSummary();
+        }
+
+        // Render Tabel Kelola Anggota
+        function renderMembersTable() {
+            const tbody = document.getElementById('memberTableBody');
+            tbody.innerHTML = '';
+
+            members.forEach((m, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td><strong>${m.name}</strong></td>
+                    <td>${m.phone || '-'}</td>
+                    <td>
+                        <button class="btn btn-warning" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMember(${idx})"><i class="ph-bold ph-pencil"></i> Edit</button>
+                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="deleteMember(${idx})"><i class="ph-bold ph-trash"></i> Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addMember() {
+            const nameInput = document.getElementById('newMemberName');
+            const phoneInput = document.getElementById('newMemberPhone');
+            if (nameInput.value.trim()) {
+                members.push({ name: nameInput.value.trim(), phone: phoneInput.value.trim() });
+                nameInput.value = '';
+                phoneInput.value = '';
+                saveData();
+            }
+        }
+
+        function editMember(idx) {
+            const newName = prompt("Ganti Nama Anggota:", members[idx].name);
+            if (newName !== null && newName.trim() !== "") {
+                members[idx].name = newName.trim();
+                saveData();
+            }
+        }
+
+        function deleteMember(idx) {
+            if (confirm(`Hapus ${members[idx].name}?`)) {
+                members.splice(idx, 1);
+                saveData();
+            }
+        }
+
+        // Render Tabel Presensi Harian
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            const date = document.getElementById('attendanceDate').value;
+            const currentData = attendanceRecords[date] || { event: '', list: {} };
+
+            if(currentData.event) document.getElementById('eventName').value = currentData.event;
+
+            tbody.innerHTML = '';
+
+            members.forEach((m, idx) => {
+                const rec = currentData.list[m.name] || { status: 'Hadir', kas: 0 };
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td><strong>${m.name}</strong></td>
+                    <td>
+                        <div class="status-btn-group">
+                            <label><input type="radio" name="st_${idx}" value="Hadir" ${rec.status === 'Hadir' ? 'checked' : ''}><span>Hadir</span></label>
+                            <label><input type="radio" name="st_${idx}" value="Izin" ${rec.status === 'Izin' ? 'checked' : ''}><span>Izin</span></label>
+                            <label><input type="radio" name="st_${idx}" value="Sakit" ${rec.status === 'Sakit' ? 'checked' : ''}><span>Sakit</span></label>
+                            <label><input type="radio" name="st_${idx}" value="Alpa" ${rec.status === 'Alpa' ? 'checked' : ''}><span>Alpa</span></label>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="number" id="kas_${idx}" value="${rec.kas || 0}" style="width: 100px;">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Simpan Presensi Harian
+        function saveAttendance() {
+            const date = document.getElementById('attendanceDate').value;
+            const eventName = document.getElementById('eventName').value;
+            if(!date) return alert("Pilih tanggal!");
+
+            let list = {};
+            members.forEach((m, idx) => {
+                const status = document.querySelector(`input[name="st_${idx}"]:checked`).value;
+                const kas = parseInt(document.getElementById(`kas_${idx}`).value) || 0;
+                list[m.name] = { status, kas };
+            });
+
+            attendanceRecords[date] = { event: eventName, list };
+            saveData();
+            alert("Presensi berhasil disimpan!");
+        }
+
+        // Hitung Ringkasan untuk Rekap
+        function calculateSummary() {
+            const date = document.getElementById('attendanceDate').value;
+            const currentData = attendanceRecords[date] || { list: {} };
+
+            let h = 0, i = 0, s = 0, a = 0, totalKas = 0;
+
+            Object.values(currentData.list).forEach(item => {
+                if (item.status === 'Hadir') h++;
+                if (item.status === 'Izin') i++;
+                if (item.status === 'Sakit') s++;
+                if (item.status === 'Alpa') a++;
+                totalKas += (item.kas || 0);
+            });
+
+            document.getElementById('statHadir').innerText = h;
+            document.getElementById('statIzin').innerText = i;
+            document.getElementById('statSakit').innerText = s;
+            document.getElementById('statAlpa').innerText = a;
+            document.getElementById('totalKasBox').innerText = `Rp ${totalKas.toLocaleString('id-ID')}`;
+        }
+
+        // Kirim Otomatis Format WA ke +62 831-1001-7681
+        function sendToWhatsApp() {
+            const date = document.getElementById('attendanceDate').value;
+            const eventName = document.getElementById('eventName').value;
+            const currentData = attendanceRecords[date];
+
+            if (!currentData) {
+                alert("Simpan presensi terlebih dahulu sebelum mengirim WA!");
+                return;
+            }
+
+            let text = `*LAPORAN PRESENSI REMAJA MASJID DESA MANDALA*\n`;
+            text += `📌 *Kegiatan:* ${eventName}\n`;
+            text += `📅 *Tanggal:* ${date}\n`;
+            text += `--------------------------------------------------\n\n`;
+
+            let h = 0, i = 0, s = 0, a = 0, totalKas = 0;
+
+            members.forEach((m, idx) => {
+                const item = currentData.list[m.name] || { status: '-', kas: 0 };
+                text += `${idx + 1}. *${m.name}* : ${item.status}`;
+                if(item.kas > 0) text += ` (Infak: Rp${item.kas.toLocaleString('id-ID')})`;
+                text += `\n`;
+
+                if (item.status === 'Hadir') h++;
+                if (item.status === 'Izin') i++;
+                if (item.status === 'Sakit') s++;
+                if (item.status === 'Alpa') a++;
+                totalKas += item.kas;
+            });
+
+            text += `\n--------------------------------------------------\n`;
+            text += `*REKAPITULASI KEHADIRAN:*\n`;
+            text += `✅ Hadir : ${h}\n📩 Izin  : ${i}\n🏥 Sakit : ${s}\n❌ Alpa  : ${a}\n`;
+            text += `💰 *Total Kas Terkumpul:* Rp ${totalKas.toLocaleString('id-ID')}\n\n`;
+            text += `_Laporan otomatis dikirim dari Sistem Presensi Mandala._`;
+
+            const encodedText = encodeURIComponent(text);
+            window.open(`https://wa.me/${TARGET_WA}?text=${encodedText}`, '_blank');
+        }
+
+        // Ekspor Rekap Ke File Excel/CSV
+        function exportToCSV() {
+            const date = document.getElementById('attendanceDate').value;
+            const currentData = attendanceRecords[date];
+
+            if (!currentData) return alert("Tidak ada data presensi pada tanggal ini untuk diunduh!");
+
+            let csvContent = "data:text/csv;charset=utf-8,No,Nama Anggota,Status,Infak Kas\n";
+            members.forEach((m, idx) => {
+                const item = currentData.list[m.name] || { status: '-', kas: 0 };
+                csvContent += `${idx + 1},${m.name},${item.status},${item.kas}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Rekap_Presensi_Mandala_${date}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('attendanceDate').addEventListener('change', () => {
+            renderAttendanceTable();
+            calculateSummary();
+        });
+
+        // Inisialisasi
+        renderAll();
+    </script>
+</body>
+</html>
