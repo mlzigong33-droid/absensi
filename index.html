@@ -303,7 +303,7 @@
                     </div>
                     <div style="flex: 2; min-width: 220px;">
                         <label style="font-size: 0.8rem; font-weight:600; color:var(--text-muted);">Nama Kegiatan / Acara</label>
-                        <input type="text" id="eventName" value="Kajian Rutin Mingguan" style="width: 100%;">
+                        <input type="text" id="eventName" placeholder="Contoh: Kajian Rutin Mingguan" style="width: 100%;">
                     </div>
                 </div>
 
@@ -385,13 +385,16 @@
             </div>
         </section>
 
-        <!-- SEC 3: DATA ANGGOTA (BISA GONTA-GANTI NAMA) -->
+        <!-- SEC 3: DATA ANGGOTA -->
         <section id="sec-anggota" class="page-section">
             <div class="page-header">
                 <div class="page-title">
                     <h1>Kelola Anggota Remaja Masjid</h1>
                     <p>Tambah, edit, dan hapus nama anggota</p>
                 </div>
+                <button class="btn btn-danger" onclick="clearAllMembers()">
+                    <i class="ph-bold ph-trash"></i> Hapus Semua Nama
+                </button>
             </div>
 
             <div class="card-panel">
@@ -427,13 +430,9 @@
         // Target Nomor WA Pengurus
         const TARGET_WA = "6283110017681";
 
-        // Initial State Data
-        let members = JSON.parse(localStorage.getItem('rmm_dash_members')) || [
-            { name: "Ahmad Ridwan", phone: "08123456789" },
-            { name: "Siti Nurhaliza", phone: "08987654321" },
-            { name: "Budi Santoso", phone: "08567890123" }
-        ];
-
+        // MENGHAPUS SEMUA NAMA ANGGOTA (Inisialisasi Array Kosong)
+        localStorage.removeItem('rmm_dash_members'); 
+        let members = JSON.parse(localStorage.getItem('rmm_dash_members')) || [];
         let attendanceRecords = JSON.parse(localStorage.getItem('rmm_dash_attendance')) || {};
 
         document.getElementById('attendanceDate').valueAsDate = new Date();
@@ -462,6 +461,11 @@
         function renderMembersTable() {
             const tbody = document.getElementById('memberTableBody');
             tbody.innerHTML = '';
+
+            if (members.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">Belum ada anggota. Silakan tambahkan nama anggota baru di atas.</td></tr>`;
+                return;
+            }
 
             members.forEach((m, idx) => {
                 const tr = document.createElement('tr');
@@ -504,6 +508,13 @@
             }
         }
 
+        function clearAllMembers() {
+            if (confirm("Apakah Anda yakin ingin menghapus SELURUH daftar nama anggota?")) {
+                members = [];
+                saveData();
+            }
+        }
+
         // Render Tabel Presensi Harian
         function renderAttendanceTable() {
             const tbody = document.getElementById('attendanceTableBody');
@@ -513,6 +524,11 @@
             if(currentData.event) document.getElementById('eventName').value = currentData.event;
 
             tbody.innerHTML = '';
+
+            if (members.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">Daftar anggota masih kosong. Tambahkan nama di menu "Data Anggota".</td></tr>`;
+                return;
+            }
 
             members.forEach((m, idx) => {
                 const rec = currentData.list[m.name] || { status: 'Hadir', kas: 0 };
@@ -539,12 +555,14 @@
         // Simpan Presensi Harian
         function saveAttendance() {
             const date = document.getElementById('attendanceDate').value;
-            const eventName = document.getElementById('eventName').value;
+            const eventName = document.getElementById('eventName').value || 'Kegiatan Remaja Masjid';
             if(!date) return alert("Pilih tanggal!");
+            if(members.length === 0) return alert("Tambahkan anggota terlebih dahulu!");
 
             let list = {};
             members.forEach((m, idx) => {
-                const status = document.querySelector(`input[name="st_${idx}"]:checked`).value;
+                const statusEl = document.querySelector(`input[name="st_${idx}"]:checked`);
+                const status = statusEl ? statusEl.value : 'Hadir';
                 const kas = parseInt(document.getElementById(`kas_${idx}`).value) || 0;
                 list[m.name] = { status, kas };
             });
@@ -579,10 +597,10 @@
         // Kirim Otomatis Format WA ke +62 831-1001-7681
         function sendToWhatsApp() {
             const date = document.getElementById('attendanceDate').value;
-            const eventName = document.getElementById('eventName').value;
+            const eventName = document.getElementById('eventName').value || 'Kegiatan Remaja Masjid';
             const currentData = attendanceRecords[date];
 
-            if (!currentData) {
+            if (!currentData || Object.keys(currentData.list).length === 0) {
                 alert("Simpan presensi terlebih dahulu sebelum mengirim WA!");
                 return;
             }
@@ -644,7 +662,7 @@
             calculateSummary();
         });
 
-        // Inisialisasi
+        // Inisialisasi awal
         renderAll();
     </script>
 </body>
